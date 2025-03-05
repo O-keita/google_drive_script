@@ -15,7 +15,7 @@ Session(app)
 # Google API Setup
 SCOPES = ['https://www.googleapis.com/auth/drive']
 CLIENT_SECRETS_FILE = 'credentials.json'
-REDIRECT_URI = '/callback'
+REDIRECT_URI = '/oauth2callback'
 
 # Dictionary to store user credentials (in-memory, use DB for production)
 user_credentials = {}
@@ -25,7 +25,7 @@ def create_flow():
     flow = Flow.from_client_secrets_file(
         CLIENT_SECRETS_FILE,
         scopes=SCOPES,
-        redirect_uri=url_for('callback', _external=True)
+        redirect_uri=url_for('oauth2callback', _external=True)
     )
     return flow
 
