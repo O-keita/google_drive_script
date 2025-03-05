@@ -56,17 +56,34 @@ def authorize():
 def oauth2callback():
     """Handle OAuth 2.0 callback and store credentials."""
     flow = create_flow()
-    flow.fetch_token(
-        authorization_response=request.url,
-        state=session['state']
-    )
+    try:
+        # Fetch the token using the authorization response and state from session
+        flow.fetch_token(
+            authorization_response=request.url,
+            state=session.get('state')
+        )
+    except Exception as e:
+        app.logger.error(f"Error fetching token: {e}")
+        return f"Error fetching token: {e}", 500
 
     creds = flow.credentials
-    user_id = creds.id_token['sub']  # Unique user ID from Google
 
-    # Store credentials in-memory (Use a database for production)
+    # Check if credentials and id_token are available
+    if not creds or not creds.id_token:
+        error_msg = "No valid credentials or ID token received. Please try again."
+        app.logger.error(error_msg)
+        return error_msg, 400
+
+    # Safely extract the user id
+    user_id = creds.id_token.get('sub')
+    if not user_id:
+        error_msg = "User ID not found in token."
+        app.logger.error(error_msg)
+        return error_msg, 400
+
+    # Store credentials in-memory (consider a database for production use)
     user_credentials[user_id] = creds
-    session['user_id'] = user_id  # Store user ID in session
+    session['user_id'] = user_id  # Save user id in session
 
     return redirect(url_for('list_drive_files'))
 
