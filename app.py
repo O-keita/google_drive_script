@@ -25,7 +25,7 @@ def create_flow():
     flow = Flow.from_client_secrets_file(
         CLIENT_SECRETS_FILE,
         scopes=SCOPES,
-        redirect_uri=url_for('oauth2callback', _external=True)
+        redirect_uri=url_for('callback', _external=True)
     )
     return flow
 
@@ -79,6 +79,7 @@ def list_drive_files():
         return redirect(url_for('index'))  # Redirect to login if not authenticated
 
     creds = user_credentials[user_id]
+    print(creds)
     service = build('drive', 'v3', credentials=creds)
 
     results = service.files().list(pageSize=10, fields="files(id, name)").execute()
