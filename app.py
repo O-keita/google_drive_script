@@ -4,7 +4,8 @@ from flask import Flask, redirect, url_for, request, session
 from flask_session import Session
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
-from google.auth.transport.requests import Request
+from google.auth.transport.requests import Request as GoogleRequest
+from google.oauth2 import id_token  # Fixed import
 
 # Flask Setup
 app = Flask(__name__)
@@ -16,6 +17,7 @@ Session(app)
 SCOPES = ['openid', 'https://www.googleapis.com/auth/drive']
 CLIENT_SECRETS_FILE = 'credentials.json'
 REDIRECT_URI = '/oauth2callback'
+CLIENT_ID = "199828944153-cg1hmm5jtdg647ogcs4ag3nfkj6e05qh.apps.googleusercontent.com"
 
 # Dictionary to store user credentials (in-memory, use DB for production)
 user_credentials = {}
@@ -74,8 +76,14 @@ def oauth2callback():
         app.logger.error(error_msg)
         return error_msg, 400
 
-    # Safely extract the user id
-    user_id = creds.id_token.get('sub')
+    # Verify and decode the ID token (creds.id_token is a JWT string)
+    try:
+        decoded_token = id_token.verify_oauth2_token(creds.id_token, GoogleRequest(), CLIENT_ID)
+        user_id = decoded_token.get('sub')
+    except Exception as e:
+        app.logger.error(f"Failed to decode ID token: {e}")
+        return f"Failed to decode ID token: {e}", 500
+
     if not user_id:
         error_msg = "User ID not found in token."
         app.logger.error(error_msg)
@@ -96,7 +104,6 @@ def list_drive_files():
         return redirect(url_for('index'))  # Redirect to login if not authenticated
 
     creds = user_credentials[user_id]
-    print(creds)
     service = build('drive', 'v3', credentials=creds)
 
     results = service.files().list(pageSize=10, fields="files(id, name)").execute()
