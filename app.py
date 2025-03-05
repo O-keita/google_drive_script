@@ -13,7 +13,7 @@ app.config['SESSION_TYPE'] = 'filesystem'  # Store session data in files
 Session(app)
 
 # Google API Setup
-SCOPES = ['https://www.googleapis.com/auth/drive']
+SCOPES = ['openai', 'https://www.googleapis.com/auth/drive']
 CLIENT_SECRETS_FILE = 'credentials.json'
 REDIRECT_URI = '/oauth2callback'
 
