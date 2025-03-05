@@ -15,7 +15,7 @@ Session(app)
 # Google API Setup
 SCOPES = ['https://www.googleapis.com/auth/drive']
 CLIENT_SECRETS_FILE = 'credentials.json'
-REDIRECT_URI = '/oauth2callback'
+REDIRECT_URI = '/callback'
 
 # Dictionary to store user credentials (in-memory, use DB for production)
 user_credentials = {}
